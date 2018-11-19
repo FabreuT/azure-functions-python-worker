@@ -185,11 +185,19 @@ class Registry:
                     checker = bindings.check_input_type_annotation
 
                 if not checker(param_bind_type, param_py_type):
-                    raise FunctionLoadError(
-                        func_name,
-                        f'type of {param.name} binding in function.json '
-                        f'"{param_bind_type}" does not match its Python '
-                        f'annotation "{param_py_type.__name__}"')
+                    if param_py_type in (str, bytes):
+                        # As a special case, we allow "raw" binding
+                        # to binding data in the form of a string or
+                        # a byte-string.
+                        # TODO: add cross-validation with dataType
+                        # from function.json once the host is sending it.
+                        pass
+                    else:
+                        raise FunctionLoadError(
+                            func_name,
+                            f'type of {param.name} binding in function.json '
+                            f'"{param_bind_type}" does not match its Python '
+                            f'annotation "{param_py_type.__name__}"')
 
             param_type_info = ParamTypeInfo(param_bind_type, param_py_type)
             if is_binding_out:
